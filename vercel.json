@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "src/app/api/ai/query/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/demo/reset/route.ts": {
+      "maxDuration": 30
+    }
+  }
+}
