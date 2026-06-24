@@ -17,8 +17,22 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'ShopFloor AI',
-  description: 'Manufacturing execution system powered by AI',
+  title: 'ShopFloor AI — AI-Powered Production Tracking ERP',
+  description: 'Track production orders, manage inventory, and query your shop floor with an AI assistant that speaks Hindi and English. Built as a solo PM portfolio project.',
+  openGraph: {
+    title: 'ShopFloor AI',
+    description: 'AI-powered production tracking for manufacturers. Voice-enabled AI assistant, Kanban board, real-time inventory.',
+    url: 'https://shopfloor-ai.vercel.app',
+    siteName: 'ShopFloor AI',
+    images: [{ url: '/og-image.png', width: 1200, height: 630 }],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'ShopFloor AI',
+    description: 'AI-powered production tracking for manufacturers',
+    images: ['/og-image.png'],
+  },
 }
 
 export default function RootLayout({

@@ -15,6 +15,7 @@ import {
   ClipboardList,
   Columns3,
   Warehouse,
+  ArrowLeftRight,
   Bot,
   Menu,
   X,
@@ -24,11 +25,12 @@ import {
 // ─── Constants ────────────────────────────────────────────────
 
 const NAV = [
-  { label: 'Dashboard',    href: '/',            Icon: LayoutDashboard },
-  { label: 'Products',     href: '/products',    Icon: Package },
-  { label: 'Work Orders',  href: '/work-orders', Icon: ClipboardList },
-  { label: 'Kanban Board', href: '/kanban',      Icon: Columns3 },
-  { label: 'Inventory',    href: '/inventory',   Icon: Warehouse },
+  { label: 'Dashboard',       href: '/',                       Icon: LayoutDashboard },
+  { label: 'Products',        href: '/products',               Icon: Package },
+  { label: 'Work Orders',     href: '/work-orders',            Icon: ClipboardList },
+  { label: 'Kanban Board',    href: '/kanban',                 Icon: Columns3 },
+  { label: 'Inventory',       href: '/inventory',              Icon: Warehouse },
+  { label: 'Transaction Log', href: '/inventory/transactions', Icon: ArrowLeftRight },
 ]
 
 const ROLE_LABELS: Record<string, string> = {
@@ -43,11 +45,13 @@ const NAVY = '#1E3A5F'
 // ─── Helpers ──────────────────────────────────────────────────
 
 function resolveTitle(pathname: string): string {
-  if (pathname === '/') return 'Dashboard'
-  if (pathname.startsWith('/products'))    return 'Products'
-  if (pathname.startsWith('/work-orders')) return 'Work Orders'
-  if (pathname.startsWith('/kanban'))      return 'Kanban Board'
-  if (pathname.startsWith('/inventory'))   return 'Inventory'
+  if (pathname === '/')                               return 'Dashboard'
+  if (pathname.startsWith('/products'))               return 'Products'
+  if (pathname.startsWith('/work-orders'))            return 'Work Orders'
+  if (pathname.startsWith('/kanban'))                 return 'Kanban Board'
+  if (pathname.startsWith('/inventory/transactions')) return 'Transaction Log'
+  if (pathname.startsWith('/inventory'))              return 'Inventory'
+  if (pathname.startsWith('/profile'))                return 'My Profile'
   return 'ShopFloor AI'
 }
 
@@ -84,7 +88,8 @@ function IconSidebar({ onAiClick }: { onAiClick?: () => void }) {
       {/* Nav icons */}
       <nav className="flex-1 overflow-y-auto py-3 space-y-1">
         {NAV.map(({ label, href, Icon }) => {
-          const active = href === '/' ? pathname === '/' : pathname.startsWith(href)
+          const dominated = NAV.some(n => n.href !== href && n.href.startsWith(href + '/') && pathname.startsWith(n.href))
+          const active = href === '/' ? pathname === '/' : !dominated && pathname.startsWith(href)
           return (
             <div key={href} className="relative group px-2">
               <Link
@@ -119,9 +124,14 @@ function IconSidebar({ onAiClick }: { onAiClick?: () => void }) {
             type="button"
             onClick={onAiClick}
             title="AI Assistant"
-            className="flex items-center justify-center w-10 h-10 rounded-lg mx-auto text-white/55 hover:text-white hover:bg-white/[0.06] transition-colors"
+            className="flex items-center justify-center w-10 h-10 rounded-full mx-auto text-amber-400 transition-all duration-200 hover:scale-105"
+            style={{
+              background: 'rgba(251,191,36,0.13)',
+              border: '1px solid rgba(251,191,36,0.30)',
+              boxShadow: '0 0 10px rgba(251,191,36,0.22), 0 0 22px rgba(251,191,36,0.10)',
+            }}
           >
-            <Bot style={{ width: 18, height: 18 }} strokeWidth={1.75} />
+            <Bot style={{ width: 17, height: 17 }} strokeWidth={1.9} />
           </button>
           <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 z-50 pointer-events-none">
             <span className="block opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap bg-gray-900 text-white text-[11px] font-medium px-2 py-1 rounded-md shadow-lg">
@@ -179,9 +189,10 @@ function SidebarContent({
       {/* ── Nav items ── */}
       <nav className="flex-1 overflow-y-auto px-3 pb-3 space-y-px">
         {NAV.map(({ label, href, Icon }) => {
+          const dominated = NAV.some(n => n.href !== href && n.href.startsWith(href + '/') && pathname.startsWith(n.href))
           const active = href === '/'
             ? pathname === '/'
-            : pathname.startsWith(href)
+            : !dominated && pathname.startsWith(href)
 
           return (
             <Link
@@ -217,14 +228,14 @@ function SidebarContent({
           <button
             type="button"
             onClick={onAiClick}
-            className={[
-              'flex w-full items-center gap-3 px-3 py-2.5 rounded-[3px]',
-              'text-[13.5px] text-white/55 hover:text-white',
-              'border border-white/15 hover:border-white/25',
-              'hover:bg-white/[0.06] transition-colors duration-100',
-            ].join(' ')}
+            className="flex w-full items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium text-amber-400 transition-all duration-200 hover:scale-[1.01] hover:brightness-110"
+            style={{
+              background: 'rgba(251,191,36,0.10)',
+              border: '1px solid rgba(251,191,36,0.28)',
+              boxShadow: '0 0 12px rgba(251,191,36,0.18), 0 0 28px rgba(251,191,36,0.08)',
+            }}
           >
-            <Bot className="shrink-0" style={{ width: 16, height: 16 }} strokeWidth={1.75} />
+            <Bot className="shrink-0" style={{ width: 16, height: 16 }} strokeWidth={2} />
             AI Assistant
           </button>
         </div>
@@ -239,7 +250,7 @@ function SidebarContent({
             >
               {initials}
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="text-[12.5px] font-medium text-white/80 truncate leading-tight">
                 {displayName || 'Loading…'}
               </p>
@@ -362,14 +373,81 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </main>
 
         {/* Footer */}
-        <footer className="shrink-0 px-5 py-2.5 border-t border-gray-100 bg-white flex items-center justify-between">
-          <span className="text-[11.5px] font-medium text-gray-500">
-            Built by <span className="text-primary font-semibold">Tee</span> — ShopFloor AI v1.0
+        <footer className="shrink-0 px-5 py-2.5 border-t border-gray-100 bg-white flex items-center justify-between gap-4 flex-wrap">
+          <span className="text-[11.5px] text-gray-500">
+            Built by{' '}
+            <a
+              href="https://www.linkedin.com/in/tabassum-khanum/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-primary hover:underline underline-offset-2"
+            >
+              Tabassum Khanum
+            </a>
+            {' '}· Product Manager &amp; Solo Builder ·{' '}
+            <a
+              href="https://github.com/tabassumk2202"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-gray-500 hover:text-primary hover:underline underline-offset-2 transition-colors"
+            >
+              View on GitHub
+            </a>
           </span>
           <span className="hidden sm:block text-[11px] text-gray-300">
-            Manufacturing Execution System · Portfolio Demo
+            ShopFloor AI v1.0 · MES Portfolio Demo
           </span>
         </footer>
+      </div>
+
+      {/* ── Floating AI button ── */}
+      <div className="fixed bottom-6 right-6 z-40 flex flex-col items-center gap-2">
+        {/* Tooltip */}
+        <div className={[
+          'mb-1 px-3 py-1.5 rounded-lg bg-gray-900/90 backdrop-blur-sm text-white text-[12px] font-medium whitespace-nowrap shadow-lg',
+          'pointer-events-none select-none',
+          aiOpen ? 'opacity-0' : 'opacity-0 group-hover:opacity-100',
+        ].join(' ')}>
+          AI Assistant
+        </div>
+
+        <div className="relative group">
+          {/* Pulse ring */}
+          {!aiOpen && (
+            <span
+              className="absolute inset-0 rounded-full animate-ping"
+              style={{ background: 'rgba(251,191,36,0.35)', animationDuration: '2.4s' }}
+            />
+          )}
+
+          <button
+            type="button"
+            aria-label="Open AI Assistant"
+            onClick={() => setAiOpen(o => !o)}
+            className="relative flex items-center justify-center w-14 h-14 rounded-full transition-all duration-200 hover:scale-110 active:scale-95"
+            style={{
+              background: aiOpen
+                ? 'linear-gradient(135deg, #1E3A5F, #2D4F7A)'
+                : 'linear-gradient(135deg, #F59E0B, #FBBF24)',
+              boxShadow: aiOpen
+                ? '0 4px 20px rgba(30,58,95,0.5), 0 2px 8px rgba(0,0,0,0.25)'
+                : '0 0 0 4px rgba(251,191,36,0.15), 0 4px 20px rgba(251,191,36,0.55), 0 2px 8px rgba(0,0,0,0.2)',
+            }}
+          >
+            <Bot
+              className="text-white"
+              style={{ width: 24, height: 24 }}
+              strokeWidth={2}
+            />
+          </button>
+
+          {/* Hover tooltip */}
+          <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 pointer-events-none">
+            <span className="block opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap bg-gray-900 text-white text-[11.5px] font-medium px-2.5 py-1.5 rounded-lg shadow-lg">
+              {aiOpen ? 'Close Assistant' : 'AI Assistant'}
+            </span>
+          </div>
+        </div>
       </div>
 
       <Toaster />

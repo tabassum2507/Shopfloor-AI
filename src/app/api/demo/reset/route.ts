@@ -59,10 +59,12 @@ export async function POST() {
 
     // ── Raw Materials ─────────────────────────────────────────
     const { error: rme } = await sb.from('raw_materials').insert([
-      { id: 'b0000002-0000-0000-0000-000000000001', name: 'Steel Billet',    sku: 'RM-BILLET', unit: 'tonnes', stock_quantity: 1200, reorder_point: 200 },
-      { id: 'b0000002-0000-0000-0000-000000000002', name: 'Iron Ore',        sku: 'RM-IRORE',  unit: 'tonnes', stock_quantity: 3000, reorder_point: 500 },
-      { id: 'b0000002-0000-0000-0000-000000000003', name: 'Ferro Manganese', sku: 'RM-FEMN',   unit: 'tonnes', stock_quantity:   80, reorder_point:  15 },
-      { id: 'b0000002-0000-0000-0000-000000000004', name: 'Zinc',            sku: 'RM-ZINC',   unit: 'tonnes', stock_quantity:   25, reorder_point:   5 },
+      { id: 'b0000002-0000-0000-0000-000000000001', name: 'Steel Billet',    sku: 'RM-BILLET', unit: 'tonnes', stock_quantity:  320, reorder_point: 200 },
+      { id: 'b0000002-0000-0000-0000-000000000002', name: 'Iron Ore',        sku: 'RM-IRORE',  unit: 'tonnes', stock_quantity: 1800, reorder_point: 500 },
+      { id: 'b0000002-0000-0000-0000-000000000003', name: 'Ferro Manganese', sku: 'RM-FEMN',   unit: 'tonnes', stock_quantity:   11, reorder_point:  15 },
+      { id: 'b0000002-0000-0000-0000-000000000004', name: 'Zinc',            sku: 'RM-ZINC',   unit: 'tonnes', stock_quantity:    4, reorder_point:   5 },
+      { id: 'b0000002-0000-0000-0000-000000000005', name: 'Lubricant Oil',   sku: 'RM-LUBOIL', unit: 'litres', stock_quantity:  280, reorder_point: 100 },
+      { id: 'b0000002-0000-0000-0000-000000000006', name: 'Limestone Flux',  sku: 'RM-LIME',   unit: 'tonnes', stock_quantity:   38, reorder_point:  50 },
     ])
     if (rme) throw new Error(`Insert raw_materials: ${rme.message}`)
 
@@ -176,11 +178,18 @@ export async function POST() {
 
     // ── Inventory Transactions ────────────────────────────────
     const { error: ite } = await sb.from('inventory_transactions').insert([
-      { id: 'f0000006-0000-0000-0000-000000000001', raw_material_id: 'b0000002-0000-0000-0000-000000000001', work_order_id: 'd0000004-0000-0000-0000-000000000001', type: 'consumption', quantity: 54.000, notes: 'WO-2026-0035 — 50 t TMT-12', created_by: 'Ramesh Kumar', created_at: ago(22, 7) },
-      { id: 'f0000006-0000-0000-0000-000000000002', raw_material_id: 'b0000002-0000-0000-0000-000000000003', work_order_id: 'd0000004-0000-0000-0000-000000000001', type: 'consumption', quantity:  0.750, notes: 'WO-2026-0035 — 50 t TMT-12', created_by: 'Ramesh Kumar', created_at: ago(22, 7) },
-      { id: 'f0000006-0000-0000-0000-000000000003', raw_material_id: 'b0000002-0000-0000-0000-000000000001', work_order_id: 'd0000004-0000-0000-0000-000000000002', type: 'consumption', quantity: 31.500, notes: 'WO-2026-0036 — 30 t WR-06',  created_by: 'Suresh Patel', created_at: ago(18, 7) },
-      { id: 'f0000006-0000-0000-0000-000000000004', raw_material_id: 'b0000002-0000-0000-0000-000000000003', work_order_id: 'd0000004-0000-0000-0000-000000000002', type: 'consumption', quantity:  0.300, notes: 'WO-2026-0036 — 30 t WR-06',  created_by: 'Suresh Patel', created_at: ago(18, 7) },
-      { id: 'f0000006-0000-0000-0000-000000000005', raw_material_id: 'b0000002-0000-0000-0000-000000000002', work_order_id: null,                                   type: 'restock',     quantity: 500.000, notes: 'Routine monthly delivery — PO #4821', created_by: 'Procurement', created_at: ago(8, 10) },
+      { id: 'f0000006-0000-0000-0000-000000000001', raw_material_id: 'b0000002-0000-0000-0000-000000000001', work_order_id: 'd0000004-0000-0000-0000-000000000001', type: 'consumption', quantity:  54.000, notes: 'WO-2026-0035 — 50 t TMT-12',         created_by: 'Ramesh Kumar', created_at: ago(22, 7) },
+      { id: 'f0000006-0000-0000-0000-000000000002', raw_material_id: 'b0000002-0000-0000-0000-000000000003', work_order_id: 'd0000004-0000-0000-0000-000000000001', type: 'consumption', quantity:   0.750, notes: 'WO-2026-0035 — 50 t TMT-12',         created_by: 'Ramesh Kumar', created_at: ago(22, 7) },
+      { id: 'f0000006-0000-0000-0000-000000000003', raw_material_id: 'b0000002-0000-0000-0000-000000000001', work_order_id: 'd0000004-0000-0000-0000-000000000002', type: 'consumption', quantity:  31.500, notes: 'WO-2026-0036 — 30 t WR-06',          created_by: 'Suresh Patel', created_at: ago(18, 7) },
+      { id: 'f0000006-0000-0000-0000-000000000004', raw_material_id: 'b0000002-0000-0000-0000-000000000003', work_order_id: 'd0000004-0000-0000-0000-000000000002', type: 'consumption', quantity:   0.300, notes: 'WO-2026-0036 — 30 t WR-06',          created_by: 'Suresh Patel', created_at: ago(18, 7) },
+      { id: 'f0000006-0000-0000-0000-000000000005', raw_material_id: 'b0000002-0000-0000-0000-000000000002', work_order_id: null,                                   type: 'restock',     quantity: 500.000, notes: 'Monthly delivery — PO #4821',         created_by: 'Procurement', created_at: ago(8, 10) },
+      { id: 'f0000006-0000-0000-0000-000000000006', raw_material_id: 'b0000002-0000-0000-0000-000000000003', work_order_id: null,                                   type: 'restock',     quantity:  25.000, notes: 'Emergency top-up — PO #4855',         created_by: 'Procurement', created_at: ago(14, 9) },
+      { id: 'f0000006-0000-0000-0000-000000000007', raw_material_id: 'b0000002-0000-0000-0000-000000000003', work_order_id: 'd0000004-0000-0000-0000-000000000003', type: 'consumption', quantity:  14.000, notes: 'WO-2026-0037 partial — 75 t TMT-16', created_by: 'Arjun Singh',  created_at: ago(10, 8) },
+      { id: 'f0000006-0000-0000-0000-000000000008', raw_material_id: 'b0000002-0000-0000-0000-000000000004', work_order_id: null,                                   type: 'restock',     quantity:  10.000, notes: 'Spot purchase — vendor invoice #99',  created_by: 'Procurement', created_at: ago(20, 14) },
+      { id: 'f0000006-0000-0000-0000-000000000009', raw_material_id: 'b0000002-0000-0000-0000-000000000004', work_order_id: 'd0000004-0000-0000-0000-000000000004', type: 'consumption', quantity:   6.000, notes: 'WO-2026-0038 — galv coating',         created_by: 'Vikram Nair',  created_at: ago(9, 10) },
+      { id: 'f0000006-0000-0000-0000-000000000010', raw_material_id: 'b0000002-0000-0000-0000-000000000005', work_order_id: null,                                   type: 'restock',     quantity: 400.000, notes: 'Quarterly maintenance stock',          created_by: 'Stores',       created_at: ago(30, 11) },
+      { id: 'f0000006-0000-0000-0000-000000000011', raw_material_id: 'b0000002-0000-0000-0000-000000000006', work_order_id: null,                                   type: 'restock',     quantity: 100.000, notes: 'Monthly flux delivery — PO #4802',    created_by: 'Procurement', created_at: ago(25, 9) },
+      { id: 'f0000006-0000-0000-0000-000000000012', raw_material_id: 'b0000002-0000-0000-0000-000000000006', work_order_id: 'd0000004-0000-0000-0000-000000000001', type: 'consumption', quantity:  62.000, notes: 'WO-2026-0035 smelting flux',           created_by: 'Ramesh Kumar', created_at: ago(22, 8) },
     ])
     if (ite) throw new Error(`Insert inventory_transactions: ${ite.message}`)
 

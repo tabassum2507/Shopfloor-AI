@@ -464,34 +464,50 @@ export default function AiAssistant({ isOpen, onClose }: Props) {
 
             {/* Mic button */}
             {hasMic ? (
-              <button
-                type="button"
-                onClick={listening ? stopListening : startListening}
-                disabled={busy}
-                aria-label={listening ? 'Stop recording' : 'Start voice input'}
-                className={[
-                  'relative p-2.5 rounded-xl transition-all shrink-0 overflow-hidden',
-                  listening
-                    ? 'bg-red-500 text-white'
-                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700',
-                  busy ? 'opacity-40 pointer-events-none' : '',
-                ].join(' ')}
-              >
-                {listening && (
-                  <span className="absolute inset-0 rounded-xl bg-red-400 animate-ping opacity-40" />
+              <div className="relative group/mic shrink-0">
+                <button
+                  type="button"
+                  onClick={listening ? stopListening : startListening}
+                  disabled={busy}
+                  aria-label={listening ? 'Stop recording' : 'Start voice input'}
+                  className={[
+                    'relative p-2.5 rounded-xl transition-all overflow-hidden',
+                    listening
+                      ? 'bg-red-500 text-white'
+                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700',
+                    busy ? 'opacity-40 pointer-events-none' : '',
+                  ].join(' ')}
+                >
+                  {listening && (
+                    <span className="absolute inset-0 rounded-xl bg-red-400 animate-ping opacity-40" />
+                  )}
+                  <Mic style={{ width: 15, height: 15 }} className="relative" />
+                </button>
+                {/* Tooltip */}
+                {!listening && (
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 pointer-events-none">
+                    <span className="block opacity-0 group-hover/mic:opacity-100 transition-opacity duration-150 whitespace-nowrap bg-gray-900 text-white text-[10.5px] font-medium px-2 py-1 rounded-md shadow-lg">
+                      Speak in English or Hindi
+                    </span>
+                  </div>
                 )}
-                <Mic style={{ width: 15, height: 15 }} className="relative" />
-              </button>
+              </div>
             ) : (
-              <button
-                type="button"
-                disabled
-                title="Voice not supported in this browser"
-                aria-label="Voice not supported in this browser"
-                className="p-2.5 rounded-xl bg-gray-100 text-gray-300 cursor-not-allowed shrink-0"
-              >
-                <Mic style={{ width: 15, height: 15 }} />
-              </button>
+              <div className="relative group/mic shrink-0">
+                <button
+                  type="button"
+                  disabled
+                  aria-label="Voice not supported in this browser"
+                  className="p-2.5 rounded-xl bg-gray-100 text-gray-300 cursor-not-allowed"
+                >
+                  <Mic style={{ width: 15, height: 15 }} />
+                </button>
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 pointer-events-none">
+                  <span className="block opacity-0 group-hover/mic:opacity-100 transition-opacity duration-150 whitespace-nowrap bg-gray-900 text-white text-[10.5px] font-medium px-2 py-1 rounded-md shadow-lg">
+                    Voice not supported in this browser
+                  </span>
+                </div>
+              </div>
             )}
 
             <input
