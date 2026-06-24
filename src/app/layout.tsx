@@ -17,6 +17,10 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+  },
   title: 'ShopFloor AI — AI-Powered Production Tracking ERP',
   description: 'Track production orders, manage inventory, and query your shop floor with an AI assistant that speaks Hindi and English. Built as a solo PM portfolio project.',
   openGraph: {
