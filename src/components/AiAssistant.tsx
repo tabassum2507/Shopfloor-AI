@@ -25,6 +25,10 @@ interface SpeechRecognitionEvent extends Event {
   readonly results: SpeechRecognitionResultList
 }
 
+interface SpeechRecognitionErrorEvent extends Event {
+  readonly error: string
+}
+
 interface SpeechRecognitionInstance extends EventTarget {
   lang:            string
   interimResults:  boolean
@@ -33,8 +37,9 @@ interface SpeechRecognitionInstance extends EventTarget {
   start():  void
   stop():   void
   abort():  void
+  onstart:  ((event: Event) => void) | null
   onresult: ((event: SpeechRecognitionEvent) => void) | null
-  onerror:  ((event: Event) => void) | null
+  onerror:  ((event: SpeechRecognitionErrorEvent) => void) | null
   onend:    ((event: Event) => void) | null
 }
 
@@ -213,19 +218,50 @@ export default function AiAssistant({ isOpen, onClose }: Props) {
 
     const recognition = new SRClass()
     recognition.lang            = 'en-IN'  // handles English + Hinglish
-    recognition.interimResults  = false
+    recognition.interimResults  = true     // show partial transcript while speaking
     recognition.maxAlternatives = 1
     recognition.continuous      = false
 
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
-      const transcript = event.results[0][0].transcript
-      setInput(transcript)
-      setListening(false)
-      sendMessage(transcript)
+    recognition.onstart = () => {
+      console.log('[Speech] onstart — mic is active')
     }
 
-    recognition.onerror = () => setListening(false)
-    recognition.onend   = () => setListening(false)
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      let interim = ''
+      let final   = ''
+
+      for (let i = 0; i < event.results.length; i++) {
+        const result = event.results[i]
+        const text   = result[0].transcript
+        if (result.isFinal) final += text
+        else                interim += text
+      }
+
+      console.log('[Speech] onresult — interim:', interim, '| final:', final)
+
+      // Show partial text in the input field while the user is still speaking
+      setInput(interim || final)
+
+      if (final) {
+        setListening(false)
+        sendMessage(final)
+      }
+    }
+
+    recognition.onerror = (e) => {
+      console.error('[Speech] onerror —', e.error)
+      // Common causes:
+      //   'not-allowed'  → mic permission denied in browser
+      //   'no-speech'    → mic heard nothing (timeout)
+      //   'network'      → Speech API needs an internet connection (sends audio to Google)
+      //   'aborted'      → stop() was called manually
+      setListening(false)
+    }
+
+    recognition.onend = () => {
+      console.log('[Speech] onend')
+      setListening(false)
+    }
 
     recognitionRef.current = recognition
     recognition.start()
@@ -427,7 +463,7 @@ export default function AiAssistant({ isOpen, onClose }: Props) {
           <form onSubmit={handleSubmit} className="flex items-center gap-2">
 
             {/* Mic button */}
-            {hasMic && (
+            {hasMic ? (
               <button
                 type="button"
                 onClick={listening ? stopListening : startListening}
@@ -445,6 +481,16 @@ export default function AiAssistant({ isOpen, onClose }: Props) {
                   <span className="absolute inset-0 rounded-xl bg-red-400 animate-ping opacity-40" />
                 )}
                 <Mic style={{ width: 15, height: 15 }} className="relative" />
+              </button>
+            ) : (
+              <button
+                type="button"
+                disabled
+                title="Voice not supported in this browser"
+                aria-label="Voice not supported in this browser"
+                className="p-2.5 rounded-xl bg-gray-100 text-gray-300 cursor-not-allowed shrink-0"
+              >
+                <Mic style={{ width: 15, height: 15 }} />
               </button>
             )}
 

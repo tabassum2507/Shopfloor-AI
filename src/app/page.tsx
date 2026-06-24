@@ -99,10 +99,10 @@ export default function DashboardPage() {
         fetch('/api/dashboard/overdue').then(r => r.json()),
         fetch('/api/dashboard/at-risk').then(r => r.json()),
       ])
-      setSummary(sumData)
-      setWeekly(weekData)
-      setPriority(priData)
-      setOverdue(overdueData)
+      setSummary(sumData && typeof sumData === 'object' && !Array.isArray(sumData) ? sumData : null)
+      setWeekly(Array.isArray(weekData) ? weekData : [])
+      setPriority(Array.isArray(priData) ? priData : [])
+      setOverdue(Array.isArray(overdueData) ? overdueData : [])
       setAtRisk(Array.isArray(riskData) ? riskData : [])
       setLastUpdated(new Date())
     } catch {

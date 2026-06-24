@@ -34,7 +34,8 @@ type ProductDetail = {
 
 // ─── Helpers ──────────────────────────────────────────────────
 
-function fmtQty(n: number, decimals = 4): string {
+function fmtQty(n: number | null | undefined, decimals = 4): string {
+  if (n == null || isNaN(n)) return '—'
   return +n.toFixed(decimals) + ''
 }
 
@@ -101,10 +102,9 @@ export default function NewWorkOrderPage() {
   const requirements = useMemo(() => {
     if (!productDetail?.bom_items) return []
     return productDetail.bom_items.map(item => {
-      const required   = qty > 0 ? item.quantity * qty : null
-      const sufficient = required !== null
-        ? item.raw_materials.stock_quantity >= required
-        : null
+      const stockQty   = item.raw_materials?.stock_quantity ?? 0
+      const required   = qty > 0 ? (item.quantity ?? 0) * qty : null
+      const sufficient = required !== null ? stockQty >= required : null
       return { ...item, required, sufficient }
     })
   }, [productDetail, qty])
@@ -268,9 +268,9 @@ export default function NewWorkOrderPage() {
                       >
                         {/* Material name */}
                         <td className="py-3 pl-5 pr-4 font-medium text-gray-800 whitespace-nowrap text-[13px]">
-                          {req.raw_materials.name}
+                          {req.raw_materials?.name ?? '—'}
                           <span className="ml-2 font-mono text-[11px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
-                            {req.raw_materials.sku}
+                            {req.raw_materials?.sku}
                           </span>
                         </td>
 
@@ -289,7 +289,7 @@ export default function NewWorkOrderPage() {
 
                         {/* Stock */}
                         <td className={`py-3 px-4 text-right font-mono text-[13px] whitespace-nowrap tabular-nums ${req.sufficient === false ? 'text-red-600 font-medium' : 'text-gray-600'}`}>
-                          {fmtQty(req.raw_materials.stock_quantity)} {req.raw_materials.unit}
+                          {fmtQty(req.raw_materials?.stock_quantity)} {req.raw_materials?.unit}
                         </td>
 
                         {/* Status icon */}

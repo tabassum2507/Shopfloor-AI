@@ -1,12 +1,15 @@
 import { NextResponse } from 'next/server'
-import { db } from '@/lib/supabase-server'
+import { requireAuth } from '@/lib/supabase-server'
 
 export async function GET() {
+  const sb = await requireAuth()
+  if (!sb) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const sevenDaysAgo = new Date()
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6)
   sevenDaysAgo.setHours(0, 0, 0, 0)
 
-  const { data, error } = await db()
+  const { data, error } = await sb
     .from('work_orders')
     .select('actual_end, quantity')
     .eq('status', 'done')

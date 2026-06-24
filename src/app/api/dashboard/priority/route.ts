@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { db } from '@/lib/supabase-server'
+import { requireAuth } from '@/lib/supabase-server'
 
 const COLORS: Record<string, string> = {
   urgent: '#EF4444',
@@ -9,7 +9,10 @@ const COLORS: Record<string, string> = {
 }
 
 export async function GET() {
-  const { data, error } = await db()
+  const sb = await requireAuth()
+  if (!sb) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { data, error } = await sb
     .from('work_orders')
     .select('priority')
     .neq('status', 'done')

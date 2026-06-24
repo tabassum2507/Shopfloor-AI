@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import Modal from '@/components/ui/Modal'
 import { toast } from '@/components/ui/toast'
+import CsvUploader from '@/components/CsvUploader'
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -247,7 +248,7 @@ export default function InventoryPage() {
         </div>
 
         {tab === 'stock' && (
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 flex-wrap">
             {/* Summary stats */}
             {!loadingStock && (
               <p className="text-[13px] text-gray-500">
@@ -260,6 +261,23 @@ export default function InventoryPage() {
                 )}
               </p>
             )}
+            <CsvUploader
+              title="Import Raw Materials"
+              endpoint="/api/inventory/import"
+              columns={[
+                { key: 'name',          label: 'Material Name',  required: true  },
+                { key: 'unit',          label: 'Unit',           required: true  },
+                { key: 'current_stock', label: 'Current Stock',  required: false },
+                { key: 'reorder_level', label: 'Reorder Level',  required: false },
+              ]}
+              templateFilename="inventory-template.csv"
+              templateContent={
+                'name,unit,current_stock,reorder_level\r\n' +
+                'Copper Wire,kg,500,50\r\n' +
+                'Lubricant Oil,litres,200,30\r\n'
+              }
+              onSuccess={loadMaterials}
+            />
             <button
               onClick={loadMaterials}
               className="flex items-center gap-1.5 text-[12px] text-gray-400 hover:text-gray-600 transition-colors"

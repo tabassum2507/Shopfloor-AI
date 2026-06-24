@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server'
-import { db } from '@/lib/supabase-server'
+import { requireAuth } from '@/lib/supabase-server'
 
 type Ctx = { params: { id: string } }
 
 export async function GET(_req: Request, { params }: Ctx) {
-  const { data, error } = await db()
+  const sb = await requireAuth()
+  if (!sb) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { data, error } = await sb
     .from('products')
     .select(`
       *,
@@ -23,6 +26,9 @@ export async function GET(_req: Request, { params }: Ctx) {
 }
 
 export async function PUT(req: Request, { params }: Ctx) {
+  const sb = await requireAuth()
+  if (!sb) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const body = await req.json().catch(() => ({}))
   const { name, sku, category, unit, description } = body
 
@@ -33,7 +39,7 @@ export async function PUT(req: Request, { params }: Ctx) {
     )
   }
 
-  const { data, error } = await db()
+  const { data, error } = await sb
     .from('products')
     .update({
       name: name.trim(),
@@ -51,7 +57,10 @@ export async function PUT(req: Request, { params }: Ctx) {
 }
 
 export async function DELETE(_req: Request, { params }: Ctx) {
-  const { error } = await db()
+  const sb = await requireAuth()
+  if (!sb) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { error } = await sb
     .from('products')
     .delete()
     .eq('id', params.id)

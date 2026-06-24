@@ -1,14 +1,17 @@
 import { NextResponse } from 'next/server'
-import { db } from '@/lib/supabase-server'
+import { requireAuth } from '@/lib/supabase-server'
 
 export async function GET(req: Request) {
+  const sb = await requireAuth()
+  if (!sb) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const { searchParams } = new URL(req.url)
   const page  = Math.max(1, parseInt(searchParams.get('page')  ?? '1',  10))
   const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') ?? '20', 10)))
   const from  = (page - 1) * limit
   const to    = from + limit - 1
 
-  const { data, count, error } = await db()
+  const { data, count, error } = await sb
     .from('inventory_transactions')
     .select(
       `id, type, quantity, notes, created_by, created_at,

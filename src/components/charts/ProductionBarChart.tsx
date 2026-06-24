@@ -35,6 +35,7 @@ function BarTooltip({
 interface Props { data: BarDay[] }
 
 export default function ProductionBarChart({ data }: Props) {
+  if (!Array.isArray(data)) return <div style={{ height: 232 }} />
   return (
     <ResponsiveContainer width="100%" height={232}>
       <BarChart

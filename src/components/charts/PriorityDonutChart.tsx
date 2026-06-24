@@ -25,6 +25,13 @@ function DonutTooltip({
 interface Props { data: DonutSlice[] }
 
 export default function PriorityDonutChart({ data }: Props) {
+  if (!Array.isArray(data) || data.length === 0) {
+    return (
+      <div className="h-[188px] flex items-center justify-center">
+        <p className="text-[13px] text-gray-400">No active orders</p>
+      </div>
+    )
+  }
   const total = data.reduce((sum, d) => sum + d.value, 0)
   return (
     <div className="flex flex-col gap-5">

@@ -1,4 +1,5 @@
-import { db } from '@/lib/supabase-server'
+import { NextResponse } from 'next/server'
+import { requireAuth } from '@/lib/supabase-server'
 
 // ─── Helpers ──────────────────────────────────────────────────
 
@@ -46,7 +47,8 @@ const STATUS_STYLE: Record<string, string> = {
 // then send via email through SES on a cron schedule.
 
 export async function GET() {
-  const sb = db()
+  const sb = await requireAuth()
+  if (!sb) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)

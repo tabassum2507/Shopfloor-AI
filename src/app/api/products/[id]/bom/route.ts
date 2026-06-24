@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server'
-import { db } from '@/lib/supabase-server'
+import { requireAuth } from '@/lib/supabase-server'
 
 type Ctx = { params: { id: string } }
 
 export async function POST(req: Request, { params }: Ctx) {
+  const sb = await requireAuth()
+  if (!sb) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const body = await req.json().catch(() => ({}))
   const { raw_material_id, quantity, unit } = body
 
@@ -15,7 +18,7 @@ export async function POST(req: Request, { params }: Ctx) {
   }
 
   // Prevent duplicate material in the same product's BOM
-  const { data: existing } = await db()
+  const { data: existing } = await sb
     .from('bom_items')
     .select('id')
     .eq('product_id', params.id)
@@ -29,7 +32,7 @@ export async function POST(req: Request, { params }: Ctx) {
     )
   }
 
-  const { data, error } = await db()
+  const { data, error } = await sb
     .from('bom_items')
     .insert({
       product_id: params.id,

@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server'
-import { db } from '@/lib/supabase-server'
+import { requireAuth } from '@/lib/supabase-server'
 
 type Ctx = { params: { id: string } }
 
 export async function PATCH(req: Request, { params }: Ctx) {
+  const sb = await requireAuth()
+  if (!sb) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const body = await req.json().catch(() => ({}))
   const { quantity, notes } = body
 
@@ -11,8 +14,6 @@ export async function PATCH(req: Request, { params }: Ctx) {
   if (!qty || qty <= 0) {
     return NextResponse.json({ error: 'quantity must be greater than 0' }, { status: 400 })
   }
-
-  const sb = db()
 
   // Fetch current stock
   const { data: rm, error: fetchErr } = await sb

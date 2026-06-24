@@ -1,12 +1,15 @@
 import { NextResponse } from 'next/server'
-import { db } from '@/lib/supabase-server'
+import { requireAuth } from '@/lib/supabase-server'
 
 // NOTE: products.category column requires this one-time migration if you've
 // already run seed.sql:
 //   ALTER TABLE products ADD COLUMN IF NOT EXISTS category TEXT DEFAULT 'Finished Goods';
 
 export async function GET() {
-  const { data, error } = await db()
+  const sb = await requireAuth()
+  if (!sb) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { data, error } = await sb
     .from('products')
     .select('*, bom_items(id)')
     .order('name')
@@ -16,6 +19,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const sb = await requireAuth()
+  if (!sb) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const body = await req.json().catch(() => ({}))
   const { name, sku, category, unit, description } = body
 
@@ -26,7 +32,7 @@ export async function POST(req: Request) {
     )
   }
 
-  const { data, error } = await db()
+  const { data, error } = await sb
     .from('products')
     .insert({
       name: name.trim(),

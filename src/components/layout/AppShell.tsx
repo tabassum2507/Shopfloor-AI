@@ -2,12 +2,12 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { Toaster } from '@/components/ui/toast'
 import { HeaderProvider, useHeaderRight } from '@/lib/header-context'
 import AiAssistant from '@/components/AiAssistant'
 import { DemoBanner } from '@/components/layout/DemoBanner'
-import { createClient } from '@/lib/supabase'
+import { useAuth } from '@/lib/auth-context'
 import {
   Factory,
   LayoutDashboard,
@@ -21,6 +21,8 @@ import {
   LogOut,
 } from 'lucide-react'
 
+// ─── Constants ────────────────────────────────────────────────
+
 const NAV = [
   { label: 'Dashboard',    href: '/',            Icon: LayoutDashboard },
   { label: 'Products',     href: '/products',    Icon: Package },
@@ -29,7 +31,16 @@ const NAV = [
   { label: 'Inventory',    href: '/inventory',   Icon: Warehouse },
 ]
 
+const ROLE_LABELS: Record<string, string> = {
+  admin:      'Administrator',
+  manager:    'Plant Manager',
+  supervisor: 'Floor Supervisor',
+  planner:    'Production Planner',
+}
+
 const NAVY = '#1E3A5F'
+
+// ─── Helpers ──────────────────────────────────────────────────
 
 function resolveTitle(pathname: string): string {
   if (pathname === '/') return 'Dashboard'
@@ -40,10 +51,22 @@ function resolveTitle(pathname: string): string {
   return 'ShopFloor AI'
 }
 
+function getInitials(displayName: string): string {
+  return displayName
+    .trim()
+    .split(/\s+/)
+    .map(w => w[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase() || '?'
+}
+
+// ─── Header right slot ────────────────────────────────────────
+
 function HeaderRightSlot() {
   const { headerRight } = useHeaderRight()
   if (!headerRight) return null
-  return <div className="ml-auto flex items-center">{headerRight}</div>
+  return <div className="flex items-center">{headerRight}</div>
 }
 
 // ─── Icon-only sidebar for tablet (md breakpoint) ────────────
@@ -123,6 +146,11 @@ function SidebarContent({
   onSignOut?:   () => void
 }) {
   const pathname = usePathname()
+  const { profile, user } = useAuth()
+
+  const displayName = profile?.full_name ?? user?.email?.split('@')[0] ?? ''
+  const initials    = getInitials(displayName)
+  const roleLabel   = ROLE_LABELS[profile?.role ?? ''] ?? 'Member'
 
   return (
     <div className="flex flex-col h-full select-none" style={{ backgroundColor: NAVY }}>
@@ -181,44 +209,58 @@ function SidebarContent({
         })}
       </nav>
 
-      {/* ── AI Assistant + Sign Out ── */}
-      <div className="shrink-0 px-3 pt-3 pb-4 border-t border-white/10 space-y-1">
-        <button
-          type="button"
-          onClick={onAiClick}
-          className={[
-            'flex w-full items-center gap-3 px-3 py-2.5 rounded-[3px]',
-            'text-[13.5px] text-white/55 hover:text-white',
-            'border border-white/15 hover:border-white/25',
-            'hover:bg-white/[0.06] transition-colors duration-100',
-          ].join(' ')}
-        >
-          <Bot className="shrink-0" style={{ width: 16, height: 16 }} strokeWidth={1.75} />
-          AI Assistant
-        </button>
-        <button
-          type="button"
-          onClick={onSignOut}
-          className="flex w-full items-center gap-3 px-3 py-2 rounded-[3px] text-[12.5px] text-white/30 hover:text-white/60 hover:bg-white/[0.04] transition-colors duration-100"
-        >
-          <LogOut className="shrink-0" style={{ width: 14, height: 14 }} strokeWidth={1.75} />
-          Sign out
-        </button>
+      {/* ── Bottom section ── */}
+      <div className="shrink-0 border-t border-white/10">
+
+        {/* AI Assistant */}
+        <div className="px-3 pt-3 pb-2">
+          <button
+            type="button"
+            onClick={onAiClick}
+            className={[
+              'flex w-full items-center gap-3 px-3 py-2.5 rounded-[3px]',
+              'text-[13.5px] text-white/55 hover:text-white',
+              'border border-white/15 hover:border-white/25',
+              'hover:bg-white/[0.06] transition-colors duration-100',
+            ].join(' ')}
+          >
+            <Bot className="shrink-0" style={{ width: 16, height: 16 }} strokeWidth={1.75} />
+            AI Assistant
+          </button>
+        </div>
+
+        {/* User info + sign out */}
+        <div className="px-3 pb-4 pt-1 border-t border-white/10 space-y-1">
+          {/* User card */}
+          <div className="flex items-center gap-2.5 px-3 py-2 rounded-[3px]">
+            <div
+              className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-[10.5px] font-bold text-amber-400"
+              style={{ backgroundColor: 'rgba(251,191,36,0.12)' }}
+            >
+              {initials}
+            </div>
+            <div className="min-w-0">
+              <p className="text-[12.5px] font-medium text-white/80 truncate leading-tight">
+                {displayName || 'Loading…'}
+              </p>
+              <span className="inline-block text-[9.5px] font-medium text-white/35 leading-tight">
+                {roleLabel}
+              </span>
+            </div>
+          </div>
+          {/* Sign out */}
+          <button
+            type="button"
+            onClick={onSignOut}
+            className="flex w-full items-center gap-3 px-3 py-1.5 rounded-[3px] text-[12.5px] text-white/30 hover:text-white/60 hover:bg-white/[0.04] transition-colors duration-100"
+          >
+            <LogOut className="shrink-0" style={{ width: 13, height: 13 }} strokeWidth={1.75} />
+            Sign out
+          </button>
+        </div>
       </div>
     </div>
   )
-}
-
-// ─── Sign-out hook ────────────────────────────────────────────
-
-function useSignOut() {
-  const router = useRouter()
-  return async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push('/login')
-    router.refresh()
-  }
 }
 
 // ─── AppShell ─────────────────────────────────────────────────
@@ -226,13 +268,16 @@ function useSignOut() {
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [aiOpen,     setAiOpen]     = useState(false)
-  const pathname  = usePathname()
-  const signOut   = useSignOut()
+  const pathname         = usePathname()
+  const { signOut, user, profile } = useAuth()
 
   // Auth pages render without the shell chrome
   if (pathname === '/login' || pathname === '/signup') {
     return <>{children}<Toaster /></>
   }
+
+  const displayName = profile?.full_name ?? user?.email?.split('@')[0] ?? ''
+  const firstName   = displayName.split(/[\s@]/)[0]
 
   return (
     <HeaderProvider>
@@ -299,7 +344,16 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             {resolveTitle(pathname)}
           </h1>
 
-          <HeaderRightSlot />
+          {/* Right-side header area: page actions + welcome greeting */}
+          <div className="ml-auto flex items-center gap-4">
+            <HeaderRightSlot />
+            {firstName && (
+              <span className="hidden sm:block text-[12.5px] text-gray-500 whitespace-nowrap">
+                Welcome,{' '}
+                <span className="font-semibold text-gray-700">{firstName}</span>
+              </span>
+            )}
+          </div>
         </header>
 
         {/* Scrollable content */}

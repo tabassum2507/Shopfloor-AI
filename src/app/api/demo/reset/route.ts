@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { db } from '@/lib/supabase-server'
+import { requireAuth } from '@/lib/supabase-server'
 
 export const runtime = 'nodejs'
 
@@ -18,7 +18,8 @@ function fwd(days: number, hour = 18): string {
 }
 
 export async function POST() {
-  const sb = db()
+  const sb = await requireAuth()
+  if (!sb) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   try {
     // Clear in FK-safe order (Supabase requires a filter; not('id','is',null) matches all rows)
@@ -41,12 +42,19 @@ export async function POST() {
     if (e6) throw new Error(`Delete products: ${e6.message}`)
 
     // ── Products ──────────────────────────────────────────────
-    const { error: pe } = await sb.from('products').insert([
+    const productRows = [
       { id: 'a0000001-0000-0000-0000-000000000001', name: 'TMT Bar 12mm',     sku: 'TMT-12',  category: 'Finished Goods', unit: 'tonnes' },
       { id: 'a0000001-0000-0000-0000-000000000002', name: 'TMT Bar 16mm',     sku: 'TMT-16',  category: 'Finished Goods', unit: 'tonnes' },
       { id: 'a0000001-0000-0000-0000-000000000003', name: 'Wire Rod 6mm',     sku: 'WR-06',   category: 'Intermediate',   unit: 'tonnes' },
       { id: 'a0000001-0000-0000-0000-000000000004', name: 'Angle Iron 50x50', sku: 'ANG-50',  category: 'Finished Goods', unit: 'tonnes' },
-    ])
+    ]
+    let { error: pe } = await sb.from('products').insert(productRows)
+    // Fallback: if category column missing (migration not applied yet), retry without it
+    if (pe?.message?.includes('category')) {
+      const rows = productRows.map(({ category: _c, ...rest }) => rest)
+      const { error: pe2 } = await sb.from('products').insert(rows)
+      pe = pe2 ?? null
+    }
     if (pe) throw new Error(`Insert products: ${pe.message}`)
 
     // ── Raw Materials ─────────────────────────────────────────

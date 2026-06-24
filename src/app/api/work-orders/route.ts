@@ -1,14 +1,17 @@
 import { NextResponse } from 'next/server'
-import { db } from '@/lib/supabase-server'
+import { requireAuth } from '@/lib/supabase-server'
 
 export async function GET(req: Request) {
+  const sb = await requireAuth()
+  if (!sb) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const { searchParams } = new URL(req.url)
   const status   = searchParams.get('status')
   const priority = searchParams.get('priority')
   const from     = searchParams.get('from')
   const to       = searchParams.get('to')
 
-  let q = db()
+  let q = sb
     .from('work_orders')
     .select(`
       id, order_number, quantity, status, priority,
@@ -29,6 +32,9 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const sb = await requireAuth()
+  if (!sb) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const body = await req.json().catch(() => ({}))
   const { product_id, quantity, priority, scheduled_end, notes } = body
 
@@ -38,8 +44,6 @@ export async function POST(req: Request) {
       { status: 400 }
     )
   }
-
-  const sb = db()
 
   // Trigger auto-generates order_number when the field is omitted
   const { data: wo, error: woErr } = await sb

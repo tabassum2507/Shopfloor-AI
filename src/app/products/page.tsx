@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Plus, Pencil, Trash2, Loader2, ChevronRight, Package } from 'lucide-react'
 import Modal from '@/components/ui/Modal'
 import { toast } from '@/components/ui/toast'
+import CsvUploader from '@/components/CsvUploader'
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -206,17 +207,36 @@ export default function ProductsPage() {
     <div className="space-y-4">
 
       {/* Page actions bar */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <p className="text-[13px] text-gray-500">
           {loading ? '' : `${products.length} product${products.length !== 1 ? 's' : ''}`}
         </p>
-        <button
-          onClick={openAdd}
-          className="flex items-center gap-1.5 bg-primary text-white px-3.5 py-2 rounded-lg text-[13px] font-medium hover:bg-primary/90 transition-colors"
-        >
-          <Plus style={{ width: 15, height: 15 }} />
-          Add Product
-        </button>
+        <div className="flex items-center gap-2">
+          <CsvUploader
+            title="Import Products"
+            endpoint="/api/products/import"
+            columns={[
+              { key: 'name',     label: 'Product Name', required: true  },
+              { key: 'sku',      label: 'SKU',          required: true  },
+              { key: 'category', label: 'Category',     required: false },
+              { key: 'unit',     label: 'Unit',         required: true  },
+            ]}
+            templateFilename="products-template.csv"
+            templateContent={
+              'name,sku,category,unit\r\n' +
+              'TMT Bar 20mm,TMT-20,Finished Goods,tonnes\r\n' +
+              'Channel 100x50,CH-100,Finished Goods,tonnes\r\n'
+            }
+            onSuccess={load}
+          />
+          <button
+            onClick={openAdd}
+            className="flex items-center gap-1.5 bg-primary text-white px-3.5 py-2 rounded-lg text-[13px] font-medium hover:bg-primary/90 transition-colors"
+          >
+            <Plus style={{ width: 15, height: 15 }} />
+            Add Product
+          </button>
+        </div>
       </div>
 
       {/* Table card */}

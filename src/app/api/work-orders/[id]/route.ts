@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { db } from '@/lib/supabase-server'
+import { requireAuth } from '@/lib/supabase-server'
 import { VALID_TRANSITIONS, type WOStatus } from '@/lib/wo-config'
 
 type Ctx = { params: { id: string } }
@@ -7,7 +7,10 @@ type Ctx = { params: { id: string } }
 // ─── GET /api/work-orders/[id] ────────────────────────────────
 
 export async function GET(_req: Request, { params }: Ctx) {
-  const { data, error } = await db()
+  const sb = await requireAuth()
+  if (!sb) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { data, error } = await sb
     .from('work_orders')
     .select(`
       *,
@@ -41,10 +44,11 @@ export async function GET(_req: Request, { params }: Ctx) {
 // ─── PATCH /api/work-orders/[id] ─────────────────────────────
 
 export async function PATCH(req: Request, { params }: Ctx) {
+  const sb = await requireAuth()
+  if (!sb) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const body = await req.json().catch(() => ({}))
   const { to_status, notes }: { to_status: WOStatus; notes?: string } = body
-
-  const sb = db()
 
   // 1. Fetch current work order with BOM for inventory deduction
   const { data: wo, error: fetchErr } = await sb
@@ -90,7 +94,6 @@ export async function PATCH(req: Request, { params }: Ctx) {
     }> = (wo as any).products?.bom_items ?? []
 
     // Pre-flight: verify ALL materials have enough stock before touching anything.
-    // This prevents partial deductions when one of several materials is short.
     for (const item of bomItems) {
       const need = item.quantity * wo.quantity
       const rm   = item.raw_materials

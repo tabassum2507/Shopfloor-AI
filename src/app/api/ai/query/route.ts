@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import Groq from 'groq-sdk'
-import { db } from '@/lib/supabase-server'
+import { requireAuth } from '@/lib/supabase-server'
 import { calcAtRisk } from '@/lib/at-risk'
 
 const PRIORITY_SORT: Record<string, number> = {
@@ -13,6 +13,8 @@ const MODEL = 'llama-3.3-70b-versatile'
 // ─── POST /api/ai/query ───────────────────────────────────────
 
 export async function POST(req: Request) {
+  const sb = await requireAuth()
+  if (!sb) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   if (!process.env.GROQ_API_KEY) {
     return NextResponse.json({ error: 'GROQ_API_KEY is not configured' }, { status: 500 })
   }
@@ -32,8 +34,6 @@ export async function POST(req: Request) {
   }
 
   // ── Fetch production context from Supabase ───────────────
-
-  const sb = db()
 
   const sevenDaysAgo = new Date()
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)

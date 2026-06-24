@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server'
-import { db } from '@/lib/supabase-server'
+import { requireAuth } from '@/lib/supabase-server'
 
 type Ctx = { params: { id: string; itemId: string } }
 
 export async function DELETE(_req: Request, { params }: Ctx) {
-  const { error } = await db()
+  const sb = await requireAuth()
+  if (!sb) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { error } = await sb
     .from('bom_items')
     .delete()
     .eq('id', params.itemId)
